@@ -1,0 +1,31 @@
+name: Godot CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  EXPORT_NAME: GodotDockerExample
+
+jobs:
+  export_windows:
+    runs-on: ubuntu-latest
+    container: dunkelgrau/godot:4.2.2
+    steps:
+      - name: Create symbolic link for export templates
+        run: ln -s /root/.local /github/home/.local
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Import Godot project
+        run: godot --headless --import
+      - name: Create build folder
+        run: mkdir -p build/windows
+      - name: Export Windows executable
+        run: godot --headless --export-release Windows\ Desktop build/windows/${EXPORT_NAME}.exe
+      - name: Archive Windows executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXPORT_NAME }}
+          path: build/windows
+          if-no-files-found: error
